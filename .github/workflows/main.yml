@@ -1,0 +1,63 @@
+name: MLOps Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 */6 * * *'  # Run every 6 hours
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+        
+    - name: Set up Conda
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        activate-environment: crypto_prediction
+        environment-file: conda_env.yml
+        auto-activate-base: false
+        
+    - name: Run tests
+      shell: bash -l {0}
+      run: |
+        conda activate crypto_prediction
+        pytest tests/ --cov=src --cov-report=xml
+        
+    - name: Upload coverage
+      uses: codecov/codecov-action@v2
+      with:
+        file: ./coverage.xml
+        
+  train:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'push'
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Conda
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        activate-environment: crypto_prediction
+        environment-file: conda_env.yml
+        auto-activate-base: false
+        
+    - name: Train model
+      shell: bash -l {0}
+      env:
+        BINANCE_API_KEY: ${{ secrets.BINANCE_API_KEY }}
+        BINANCE_API_SECRET: ${{ secrets.BINANCE_API_SECRET }}
+      run: |
+        conda activate crypto_prediction
+        python src/data/ingest.py
+        python src/models/train.py
