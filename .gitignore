@@ -57,6 +57,7 @@ model.json
 feature_scaler.pkl
 
 # MLflow
+mlartifacts/
 mlruns/
 mlflow.db
 outputs/
@@ -85,3 +86,4 @@ htmlcov/
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 !models/.gitkeep 
+node_modules
