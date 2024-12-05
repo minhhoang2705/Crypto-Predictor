@@ -2,6 +2,8 @@
 
 A modern web application for cryptocurrency price prediction using machine learning, featuring real-time market data visualization and trading signals.
 
+***Disclaimer: This web application is not intended for real cryptocurrency investment. It is just a side project.***
+
 ## Features
 
 - Real-time cryptocurrency price charts with TradingView-style interface
