@@ -2,6 +2,8 @@
 
 A modern web application for cryptocurrency price prediction using machine learning, featuring real-time market data visualization and trading signals.
 
+***Disclaimer: This web application is not intended for real cryptocurrency investment. It is just a side project.***
+
 ## Features
 
 - Real-time cryptocurrency price charts with TradingView-style interface
@@ -157,6 +159,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - MLflow
 - FastAPI
 - React and Material-UI teams
+<<<<<<< HEAD
 
 ## Deployment
 
@@ -251,3 +254,5 @@ sudo systemctl start grafana-server
 ```
 
 Access Grafana at `http://your-domain.com:3000`
+=======
+>>>>>>> fecff429b869aaaf9d5b96ff7e159129422ef06e
