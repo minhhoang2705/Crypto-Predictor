@@ -1,0 +1,15 @@
+[Unit]
+Description=Crypto Price Prediction API
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/home/USER/app
+Environment="PATH=/home/USER/app/venv/bin"
+Environment="PYTHONPATH=/home/USER/app"
+ExecStart=/home/USER/app/venv/bin/uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+Restart=always
+
+[Install]
+WantedBy=multi-user.target 

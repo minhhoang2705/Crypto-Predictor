@@ -157,3 +157,97 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - MLflow
 - FastAPI
 - React and Material-UI teams
+
+## Deployment
+
+### Server Setup
+
+1. Install required packages:
+```bash
+sudo apt update
+sudo apt install nginx python3-venv python3-dev build-essential
+```
+
+2. Create application directory:
+```bash
+sudo mkdir -p /var/www/crypto-prediction
+sudo chown -R $USER:$USER /var/www/crypto-prediction
+```
+
+3. Set up Python virtual environment:
+```bash
+python3 -m venv /home/$USER/app/venv
+source /home/$USER/app/venv/bin/activate
+pip install -r requirements.txt
+```
+
+4. Configure systemd service:
+```bash
+sudo cp deployment/crypto-api.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable crypto-api
+sudo systemctl start crypto-api
+```
+
+5. Configure Nginx:
+```bash
+sudo cp deployment/nginx.conf /etc/nginx/sites-available/crypto-prediction
+sudo ln -s /etc/nginx/sites-available/crypto-prediction /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+6. Set up SSL with Let's Encrypt:
+```bash
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d your-domain.com
+```
+
+### CI/CD Setup
+
+1. Add the following secrets to your GitHub repository:
+   - `SSH_PRIVATE_KEY`: SSH key for server access
+   - `SERVER_IP`: Your server's IP address
+   - `SERVER_USER`: SSH user for deployment
+
+2. Configure your domain's DNS to point to your server's IP address
+
+3. Update the following files with your domain and paths:
+   - `deployment/nginx.conf`: Replace `your-domain.com`
+   - `deployment/crypto-api.service`: Replace `USER` with your username
+   - `src/frontend/.env.production`: Update API URL
+
+### CI/CD Pipeline
+
+The project includes two GitHub Actions workflows:
+
+1. Backend CI/CD (`backend.yml`):
+   - Runs tests on Python 3.8 and 3.9
+   - Performs linting with flake8
+   - Runs pytest with coverage
+   - Deploys to server on main/master branch
+
+2. Frontend CI/CD (`frontend.yml`):
+   - Tests on Node.js 16.x and 18.x
+   - Runs ESLint
+   - Runs tests with coverage
+   - Builds production bundle
+   - Deploys to server on main/master branch
+
+### Monitoring
+
+1. Set up Prometheus monitoring:
+```bash
+sudo apt install prometheus
+sudo cp deployment/prometheus.yml /etc/prometheus/
+sudo systemctl restart prometheus
+```
+
+2. Set up Grafana dashboards:
+```bash
+sudo apt install grafana
+sudo systemctl enable grafana-server
+sudo systemctl start grafana-server
+```
+
+Access Grafana at `http://your-domain.com:3000`
