@@ -159,100 +159,143 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - MLflow
 - FastAPI
 - React and Material-UI teams
-<<<<<<< HEAD
 
-## Deployment
+## Docker Deployment
 
-### Server Setup
+### Prerequisites
+- Docker Engine 20.10+
+- Docker Compose 2.0+
+- SSL certificates for HTTPS
 
-1. Install required packages:
+### Quick Start
+
+1. Clone the repository:
 ```bash
-sudo apt update
-sudo apt install nginx python3-venv python3-dev build-essential
+git clone https://github.com/yourusername/Crypto-Currency-Prediction.git
+cd Crypto-Currency-Prediction
 ```
 
-2. Create application directory:
+2. Set up SSL certificates:
 ```bash
-sudo mkdir -p /var/www/crypto-prediction
-sudo chown -R $USER:$USER /var/www/crypto-prediction
+mkdir -p ssl
+# Copy your SSL certificates to the ssl directory
+cp /path/to/your/certificates/fullchain.pem ssl/
+cp /path/to/your/certificates/privkey.pem ssl/
 ```
 
-3. Set up Python virtual environment:
+3. Build and start the containers:
 ```bash
-python3 -m venv /home/$USER/app/venv
-source /home/$USER/app/venv/bin/activate
-pip install -r requirements.txt
+docker-compose up -d --build
 ```
 
-4. Configure systemd service:
+4. Check the status:
 ```bash
-sudo cp deployment/crypto-api.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable crypto-api
-sudo systemctl start crypto-api
+docker-compose ps
 ```
 
-5. Configure Nginx:
+### Container Structure
+
+The application is containerized into several services:
+
+1. **Frontend (Nginx + React)**
+   - Serves the React application
+   - Handles SSL termination
+   - Proxies API requests
+   - Ports: 80, 443
+
+2. **Backend (FastAPI)**
+   - Handles API requests
+   - ML model inference
+   - Port: 8000
+
+3. **MLflow Server**
+   - Manages ML models
+   - Tracks experiments
+   - Port: 5000
+
+4. **PostgreSQL Database**
+   - Stores MLflow metadata
+   - Persistent volume for data
+
+5. **Prometheus**
+   - Metrics collection
+   - Port: 9090
+
+6. **Grafana**
+   - Monitoring dashboards
+   - Port: 3000
+
+### Volume Management
+
+The following persistent volumes are used:
+- `postgres-data`: Database files
+- `mlflow-artifacts`: ML model artifacts
+- `prometheus-data`: Metrics data
+- `grafana-data`: Dashboard configurations
+
+### Network Configuration
+
+All services are connected through the `app-network` bridge network, with the following exposed ports:
+- 80, 443: Frontend (HTTP/HTTPS)
+- 8000: API
+- 5000: MLflow
+- 9090: Prometheus
+- 3000: Grafana
+
+### Maintenance
+
+1. View logs:
 ```bash
-sudo cp deployment/nginx.conf /etc/nginx/sites-available/crypto-prediction
-sudo ln -s /etc/nginx/sites-available/crypto-prediction /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl restart nginx
+docker-compose logs -f [service_name]
 ```
 
-6. Set up SSL with Let's Encrypt:
+2. Restart a service:
 ```bash
-sudo apt install certbot python3-certbot-nginx
-sudo certbot --nginx -d your-domain.com
+docker-compose restart [service_name]
 ```
 
-### CI/CD Setup
+3. Update containers:
+```bash
+docker-compose pull
+docker-compose up -d --build
+```
 
-1. Add the following secrets to your GitHub repository:
-   - `SSH_PRIVATE_KEY`: SSH key for server access
-   - `SERVER_IP`: Your server's IP address
-   - `SERVER_USER`: SSH user for deployment
-
-2. Configure your domain's DNS to point to your server's IP address
-
-3. Update the following files with your domain and paths:
-   - `deployment/nginx.conf`: Replace `your-domain.com`
-   - `deployment/crypto-api.service`: Replace `USER` with your username
-   - `src/frontend/.env.production`: Update API URL
-
-### CI/CD Pipeline
-
-The project includes two GitHub Actions workflows:
-
-1. Backend CI/CD (`backend.yml`):
-   - Runs tests on Python 3.8 and 3.9
-   - Performs linting with flake8
-   - Runs pytest with coverage
-   - Deploys to server on main/master branch
-
-2. Frontend CI/CD (`frontend.yml`):
-   - Tests on Node.js 16.x and 18.x
-   - Runs ESLint
-   - Runs tests with coverage
-   - Builds production bundle
-   - Deploys to server on main/master branch
+4. Backup volumes:
+```bash
+docker run --rm -v crypto-currency-prediction_postgres-data:/source -v $(pwd)/backup:/backup alpine tar czf /backup/postgres-backup.tar.gz -C /source .
+```
 
 ### Monitoring
 
-1. Set up Prometheus monitoring:
+1. Access Grafana:
+   - URL: http://your-domain:3000
+   - Default credentials: admin/admin
+
+2. Access Prometheus:
+   - URL: http://your-domain:9090
+
+3. Access MLflow:
+   - URL: http://your-domain:5000
+
+### Troubleshooting
+
+1. Check container status:
 ```bash
-sudo apt install prometheus
-sudo cp deployment/prometheus.yml /etc/prometheus/
-sudo systemctl restart prometheus
+docker-compose ps
 ```
 
-2. Set up Grafana dashboards:
+2. View container logs:
 ```bash
-sudo apt install grafana
-sudo systemctl enable grafana-server
-sudo systemctl start grafana-server
+docker-compose logs -f [service_name]
 ```
 
-Access Grafana at `http://your-domain.com:3000`
-=======
->>>>>>> fecff429b869aaaf9d5b96ff7e159129422ef06e
+3. Restart all services:
+```bash
+docker-compose restart
+```
+
+4. Reset everything:
+```bash
+docker-compose down -v
+docker-compose up -d --build
+```
